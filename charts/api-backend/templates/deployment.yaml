@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "api-backend.fullname" . }}
+  labels:
+    {{- include "api-backend.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "api-backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- if .Values.app.secrets.credentials.create }}
+      checksum/credentials-secret: {{ include (print $.Template.BasePath "/credentials-secret.yaml") . | sha256sum }}
+      {{- end }}
+      {{- if .Values.app.secrets.database.create }}
+      checksum/database-secret: {{ include (print $.Template.BasePath "/database-secret.yaml") . | sha256sum }}
+      {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "api-backend.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "api-backend.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.app.secrets.database.create }}
+          envFrom:
+            - secretRef:
+                name: {{ include "api-backend.fullname" . }}-database
+          {{- end }}
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/app/credentials.json"
+            {{- if not .Values.app.secrets.database.create }}
+            - name: OPENSEARCH_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.secrets.database.name }}
+                  key: {{ .Values.app.secrets.database.key | default "opensearch" }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: credentials
+              readOnly: true
+              mountPath: "/app/credentials.json"
+              {{- if .Values.app.secrets.credentials.create }}
+              subPath: credentials.json
+              {{- else }}
+              subPath: {{ .Values.app.secrets.credentials.key }}
+              {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: credentials
+          secret:
+            {{- if .Values.app.secrets.credentials.create }}
+            secretName: {{ include "api-backend.fullname" . }}-credentials
+            {{- else }}
+            secretName: {{ .Values.app.secrets.credentials.name }}
+            {{- end }}
