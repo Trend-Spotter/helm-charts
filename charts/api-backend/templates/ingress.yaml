@@ -58,7 +58,7 @@ spec:
               {{- end }}
           {{- end }}
           - path: /docs
-            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
             pathType: ImplementationSpecific
             {{- end }}
             backend:
@@ -72,7 +72,7 @@ spec:
               servicePort: {{ $svcPort }}
               {{- end }}
           - path: /openapi.json
-            {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
+            {{- if semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion }}
             pathType: ImplementationSpecific
             {{- end }}
             backend:
