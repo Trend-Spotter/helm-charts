@@ -3,6 +3,16 @@ entries:
   api-backend:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2025-02-25T14:32:02.739691858Z"
+    description: A Helm chart for Kubernetes
+    digest: f827172ecc8f060ce812544808f5132fec65407608c34aa8737b651a61728711
+    name: api-backend
+    type: application
+    urls:
+    - https://github.com/Trend-Spotter/helm-charts/releases/download/api-backend-0.3.0/api-backend-0.3.0.tgz
+    version: 0.3.0
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2025-02-25T14:17:43.91176116Z"
     description: A Helm chart for Kubernetes
     digest: 3668a4397bf4d42981fa897c5b67b763a6a94f73f100d3479b1187e3976202bd
@@ -21,4 +31,4 @@ entries:
     urls:
     - https://github.com/Trend-Spotter/helm-charts/releases/download/api-backend-0.1.0/api-backend-0.1.0.tgz
     version: 0.1.0
-generated: "2025-02-25T14:17:43.911768183Z"
+generated: "2025-02-25T14:32:02.739710393Z"
