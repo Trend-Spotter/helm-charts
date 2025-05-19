@@ -54,6 +54,9 @@ spec:
                   name: {{ .Values.app.secrets.database.name }}
                   key: {{ .Values.app.secrets.database.key | default "opensearch" }}
             {{- end }}
+            {{- with .Values.app.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
